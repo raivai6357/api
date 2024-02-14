@@ -8,6 +8,7 @@ const {
   login,
   getUserById,
   getAllUser,
+  updateLocation,
 } = require('../controller/userController');
 
 /* Register User Route */
@@ -20,5 +21,6 @@ router.route('/updateProfile').put(updateData);
 router.route('/login').post(login);
 router.route('/getbyid').post(getUserById);
 router.route('/getall').get(getAllUser);
+router.route('/updateLocation').post(updateLocation);
 
 module.exports = router;

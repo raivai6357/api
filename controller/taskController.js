@@ -176,6 +176,19 @@ const updateTask = async (req, res) => {
       });
     }
 
+    // status == completed then the post status should be updated to false
+    if (status === 'completed') {
+      const updatedPost = await Post.findByIdAndUpdate(
+        task.post,
+        {
+          active: false,
+        },
+        {
+          new: true,
+        }
+      );
+    }
+
     const updatedTask = await Task.findByIdAndUpdate(
       id,
       {

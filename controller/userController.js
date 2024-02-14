@@ -103,7 +103,7 @@ const updatePassword = async (req, res) => {
 
 const updateData = async (req, res) => {
   try {
-    const { name, email, address, id } = req.body;
+    const { name, email, address, profileImage, id } = req.body;
 
     const user = await User.findById(id);
 
@@ -119,6 +119,7 @@ const updateData = async (req, res) => {
         name,
         email,
         address,
+        profileImage,
       },
       { new: true }
     );
@@ -236,6 +237,28 @@ const getAllUser = async (req, res) => {
   }
 };
 
+const updateLocation = async (req, res) => {
+  const { uid, location } = req.body;
+
+  const existedUser = await User.findById(uid);
+
+  if (existedUser) {
+    const updatedUser = await User.findByIdAndUpdate(
+      uid,
+      { location: location },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      return res.status(200).json(updatedUser);
+    }
+  } else {
+    return res.status(404).json({
+      message: 'User not found in the database',
+    });
+  }
+};
+
 module.exports = {
   register,
   updatePassword,
@@ -243,4 +266,5 @@ module.exports = {
   login,
   getUserById,
   getAllUser,
+  updateLocation,
 };

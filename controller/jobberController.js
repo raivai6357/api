@@ -105,7 +105,7 @@ const login = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, email, address, id } = req.body;
+    const { name, email, address, profileImage, id } = req.body;
 
     const jobber = await Jobber.findById(id);
 
@@ -122,6 +122,7 @@ const updateProfile = async (req, res) => {
         name: name,
         email: email,
         address: address,
+        profileImage: profileImage,
       },
       { new: true }
     );
@@ -173,6 +174,28 @@ const updatePassword = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: 'Unable to update jobber password',
+    });
+  }
+};
+
+const updateLocation = async (req, res) => {
+  const { uid, location } = req.body;
+
+  const existedUser = await Jobber.findById(uid);
+
+  if (existedUser) {
+    const updatedUser = await Jobber.findByIdAndUpdate(
+      uid,
+      { location: location },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      return res.status(200).json(updatedUser);
+    }
+  } else {
+    return res.status(404).json({
+      message: 'User not found in the database',
     });
   }
 };
@@ -231,4 +254,5 @@ module.exports = {
   updatePassword,
   getAllJobbers,
   getJobberById,
+  updateLocation,
 };

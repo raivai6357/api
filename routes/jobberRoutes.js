@@ -8,6 +8,7 @@ const {
   updatePassword,
   getAllJobbers,
   getJobberById,
+  updateLocation,
 } = require('../controller/jobberController');
 
 /* Register User Route */
@@ -20,5 +21,6 @@ router.route('/updateProfile').put(updateProfile);
 router.route('/login').post(login);
 router.route('/getbyid').post(getJobberById);
 router.route('/getall').get(getAllJobbers);
+router.route('/updateLocation').post(updateLocation);
 
 module.exports = router;

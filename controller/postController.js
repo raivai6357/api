@@ -110,10 +110,39 @@ const editPost = async (req, res) => {
   }
 };
 
+const getPostsByKeyword = async (req, res) => {
+  try {
+    const { keyword } = req.body;
+    if (keyword === 'all' || keyword === 'All') {
+      const posts = await Post.find({ active: true }).populate('user');
+
+      if (posts) {
+        return res.status(200).json(posts);
+      }
+    }
+    const posts = await Post.find({
+      title: { $regex: keyword, $options: 'i' },
+    }).populate('user');
+
+    if (posts) {
+      return res.status(200).json(posts);
+    } else {
+      return res.status(404).json({
+        message: 'No post found',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: 'Something went wrong',
+    });
+  }
+};
+
 module.exports = {
   createPost,
   getPosts,
   getPost,
   getPostsByUser,
   editPost,
+  getPostsByKeyword,
 };
