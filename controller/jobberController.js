@@ -42,16 +42,11 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { phone, email, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (email === 'example@example.com') {
-      return res.status(400).json({
-        success: false,
-        message: 'You must update your email!',
-      });
-    }
+    // console.log(phone, password);
 
-    if (!phone && !email) {
+    if (!phone) {
       return res.status(400).json({
         success: false,
         message: 'Please provide either phone or email',
@@ -65,35 +60,28 @@ const login = async (req, res) => {
       });
     }
 
-    const jobber = await Jobber.findOne({ $or: [{ phone }, { email }] });
+    const jobber = await Jobber.findOne({ phone });
+
+    // console.log(jobber);
 
     if (!jobber) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: 'Invalid credentials',
       });
     }
-
     const isMatch = await bcrypt.compare(password, jobber.password);
 
     if (!isMatch) {
-      return res.status(400).json({
+      return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
       });
     }
 
-    const accessToken = await jobber.getSignedJwtToken(jobber._id);
-
-    const updatedUser = await Jobber.findOneAndUpdate(
-      jobber._id,
-      { accessToken },
-      { new: true }
-    );
-
-    return res.status(200).json(updatedUser);
+    res.status(200).json(jobber);
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       message: 'Unable to login jobber',
     });
   }
