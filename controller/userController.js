@@ -55,35 +55,40 @@ const register = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { oldPass, newPass, id } = req.body;
 
-    const user = await User.findOne({ phone });
+    // Check if user exists
+    const user = await User.findById(id);
 
-    if (password.length < 6 || password.length > 16) {
-      return res.status(400).json({
-        message: 'Password must be between 6 and 16 characters',
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found in the DB!',
       });
     }
 
-    if (user) {
-      const hash = await user.genHash(password);
-      const accessToken = await user.getSignedJwtToken(user._id);
-      const newUser = await User.findOneAndUpdate(
-        { phone },
-        { password: hash, accessToken },
-        { new: true }
-      );
+    // Check if old password is correct
+    const isMatch = await user.matchPassword(oldPass);
 
-      if (newUser) {
-        res.status(200).json(newUser);
-      } else {
-        res.status(403).json({
-          message: 'Password update failed!',
-        });
-      }
+    if (!isMatch) {
+      return res.status(401).json({
+        message: 'Old password is incorrect!',
+      });
+    }
+
+    // Update the password
+    const hash = await user.genHash(newPass);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { password: hash },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      res.status(200).json(updatedUser);
     } else {
-      res.status(404).json({
-        message: 'User not yet registered!',
+      res.status(403).json({
+        message: 'Password update failed!',
       });
     }
   } catch (error) {

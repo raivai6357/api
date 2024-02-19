@@ -59,12 +59,6 @@ const jobberSchema = new mongoose.Schema(
   }
 );
 
-jobberSchema.methods.getSignedJwtToken = function (id) {
-  return jwt.sign({ id: id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
-};
-
 // Encrypt password using bcrypt
 
 jobberSchema.pre('save', async function (next) {
@@ -78,32 +72,10 @@ jobberSchema.pre('save', async function (next) {
   next();
 });
 
-// Update password using bcrypt
-
-jobberSchema.methods.genHash = async function (password) {
-  const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash(password, salt);
-  return hash;
-};
-
-// Sign JWT and return
-
 jobberSchema.methods.getSignedJwtToken = function (id) {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
-};
-
-// Check access token is expired or not
-
-jobberSchema.methods.isTokenExpired = function (token) {
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const currentTime = Date.now() / 1000;
-  if (decoded.exp < currentTime) {
-    return true;
-  } else {
-    return false;
-  }
 };
 
 // Match user entered password to hashed password in database
@@ -112,14 +84,12 @@ jobberSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Geocode and create location field
+// Update password using bcrypt
 
-jobberSchema.methods.genLocation = function (lat, lng) {
-  return {
-    type: 'Point',
-    // geoJSON expects lng first then lat
-    coordinates: [lng, lat],
-  };
+jobberSchema.methods.genHash = async function (password) {
+  const salt = await bcrypt.genSalt(10);
+  const hash = await bcrypt.hash(password, salt);
+  return hash;
 };
 
 module.exports = mongoose.model('Jobber', jobberSchema);

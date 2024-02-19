@@ -44,12 +44,10 @@ const login = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
-    // console.log(phone, password);
-
     if (!phone) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide either phone or email',
+        message: 'Please provide phone number',
       });
     }
 
@@ -62,18 +60,20 @@ const login = async (req, res) => {
 
     const jobber = await Jobber.findOne({ phone });
 
-    // console.log(jobber);
-
     if (!jobber) {
       return res.status(404).json({
         success: false,
-        message: 'Invalid credentials',
+        message: 'User not found',
       });
     }
+
+    // console.log(jobber);
     const isMatch = await bcrypt.compare(password, jobber.password);
 
+    // console.log(jobber);
+
     if (!isMatch) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
         message: 'Invalid credentials',
       });
@@ -129,39 +129,46 @@ const updateProfile = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   try {
-    const { phone, password } = req.body;
+    const { oldPass, newPass, id } = req.body;
 
-    if (password.length < 6 || password.length > 16) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be between 6 and 16 characters',
-      });
-    }
-
-    const jobber = await Jobber.findOne({ phone });
+    // Check if user exists
+    const jobber = await Jobber.findById(id);
 
     if (!jobber) {
       return res.status(404).json({
-        success: false,
-        message: 'User not found',
+        message: 'User not found in the DB!',
       });
     }
 
+    // Check if old password is correct
+    const isMatch = await bcrypt.compare(oldPass, jobber.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: 'Old password is incorrect!',
+      });
+    }
+
+    // Update the password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hash = await bcrypt.hash(newPass, salt);
 
     const updatedJobber = await Jobber.findByIdAndUpdate(
-      jobber._id,
-      {
-        password: hashedPassword,
-      },
+      id,
+      { password: hash },
       { new: true }
     );
 
-    return res.status(200).json(updatedJobber);
+    if (updatedJobber) {
+      return res.status(200).json(updatedJobber);
+    } else {
+      return res.status(403).json({
+        message: 'Password update failed!',
+      });
+    }
   } catch (error) {
-    return res.status(500).json({
-      message: 'Unable to update jobber password',
+    res.status(500).json({
+      message: error,
     });
   }
 };
