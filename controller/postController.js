@@ -122,6 +122,7 @@ const getPostsByKeyword = async (req, res) => {
     }
     const posts = await Post.find({
       title: { $regex: keyword, $options: 'i' },
+      active: true,
     }).populate('user');
 
     if (posts) {
