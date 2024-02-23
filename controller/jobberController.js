@@ -21,6 +21,8 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    
+
     const newJobber = await Jobber.create({
       name,
       phone,
@@ -28,9 +30,11 @@ const register = async (req, res) => {
       role,
     });
 
-    return res.status(201).json(newJobber);
+
+
+    res.status(201).json(newJobber);
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       message: 'Unable to register jobber',
     });
   }
